@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="stats">
+  <div class="stat-card accent">
+    <div class="label">Total Leads</div>
+    <div class="value">{{ stats.total_leads }}</div>
+  </div>
+  {% for status, count in stats.by_status.items() %}
+  <div class="stat-card">
+    <div class="label">{{ status | capitalize }}</div>
+    <div class="value">{{ count }}</div>
+  </div>
+  {% endfor %}
+  <div class="stat-card">
+    <div class="label">Search Runs</div>
+    <div class="value">{{ stats.search_runs }}</div>
+  </div>
+</div>
+
+<div class="scrape-box">
+  <h2>🔍 Run a new scraping session</h2>
+  <form method="post" action="/scrape/run" id="scrapeForm">
+    <div class="row" style="margin-bottom:10px;">
+      <input name="query" placeholder='Search query — e.g. "logistics companies in Ohio"' required />
+      <input name="max_leads" type="number" value="15" min="1" max="100" style="max-width:100px;" />
+    </div>
+    <div class="row" style="margin-bottom:12px;">
+      <textarea name="sfg_description" rows="2"
+        placeholder="Override SFG description (leave blank to use .env value)"></textarea>
+    </div>
+    <div class="row">
+      <button class="btn" type="submit">▶ Start Scraping</button>
+    </div>
+  </form>
+</div>
+
+<h2 style="margin-bottom:16px; font-size:15px; font-weight:600;">Recent Leads</h2>
+
+{% if leads %}
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Company</th>
+        <th>Contact</th>
+        <th>Industry / Location</th>
+        <th>Why SFG?</th>
+        <th>Status</th>
+        <th>Added</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for lead in leads %}
+      <tr>
+        <td class="mono">{{ lead.id }}</td>
+        <td>
+          <div class="company">
+            <a href="/leads/{{ lead.id }}">{{ lead.company or '—' }}</a>
+          </div>
+          {% if lead.website %}
+          <div class="mono"><a href="{{ lead.website }}" target="_blank" style="color:var(--accent2)">↗ site</a></div>
+          {% endif %}
+        </td>
+        <td>
+          <div>{{ lead.name or '—' }}</div>
+          {% if lead.email %}
+          <div class="mono">{{ lead.email }}</div>
+          {% endif %}
+        </td>
+        <td>
+          <div>{{ lead.industry or '—' }}</div>
+          <div class="mono">{{ lead.location or '' }}</div>
+        </td>
+        <td class="desc">{{ (lead.description or '')[:120] }}</td>
+        <td>
+          <form method="post" action="/leads/{{ lead.id }}/status" style="display:inline">
+            <select name="status" class="status-select" onchange="this.form.submit()">
+              {% for s in ['new','contacted','qualified','closed','rejected'] %}
+              <option value="{{ s }}" {{ 'selected' if lead.status == s else '' }}>{{ s }}</option>
+              {% endfor %}
+            </select>
+          </form>
+        </td>
+        <td class="mono">{{ lead.created_at[:10] }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty">
+  <div class="icon">🗒️</div>
+  <p>No leads yet. Run a scraping session above to get started.</p>
+</div>
+{% endif %}
+
+{% endblock %}

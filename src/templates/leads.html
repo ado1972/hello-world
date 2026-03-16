@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
+  <h1 style="font-size:20px; font-weight:700;">All Leads</h1>
+  <a href="/scrape" class="btn">+ New Scrape</a>
+</div>
+
+<div class="filters">
+  <a href="/leads" class="filter-btn {{ 'active' if not current_status else '' }}">All ({{ stats.total_leads }})</a>
+  {% for s, cnt in stats.by_status.items() %}
+  <a href="/leads?status={{ s }}" class="filter-btn {{ 'active' if current_status == s else '' }}">
+    {{ s | capitalize }} ({{ cnt }})
+  </a>
+  {% endfor %}
+</div>
+
+{% if leads %}
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Company</th>
+        <th>Contact</th>
+        <th>Industry</th>
+        <th>Location</th>
+        <th>Tags</th>
+        <th>Status</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for lead in leads %}
+      <tr>
+        <td class="mono">{{ lead.id }}</td>
+        <td>
+          <div class="company"><a href="/leads/{{ lead.id }}">{{ lead.company or '—' }}</a></div>
+          {% if lead.website %}
+          <div class="mono"><a href="{{ lead.website }}" target="_blank" style="color:var(--accent2)">↗</a>
+          {{ lead.website | replace('https://','') | replace('http://','') | truncate(30) }}</div>
+          {% endif %}
+        </td>
+        <td>
+          {{ lead.name or '—' }}
+          {% if lead.email %}<div class="mono">{{ lead.email }}</div>{% endif %}
+          {% if lead.phone %}<div class="mono">{{ lead.phone }}</div>{% endif %}
+        </td>
+        <td>{{ lead.industry or '—' }}</td>
+        <td>{{ lead.location or '—' }}</td>
+        <td>
+          <div class="tags">
+            {% for tag in lead.tags %}
+            <span class="tag">{{ tag }}</span>
+            {% endfor %}
+          </div>
+        </td>
+        <td>
+          <form method="post" action="/leads/{{ lead.id }}/status">
+            <select name="status" class="status-select" onchange="this.form.submit()">
+              {% for s in ['new','contacted','qualified','closed','rejected'] %}
+              <option value="{{ s }}" {{ 'selected' if lead.status == s else '' }}>{{ s }}</option>
+              {% endfor %}
+            </select>
+          </form>
+        </td>
+        <td class="mono">{{ lead.created_at[:10] }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty">
+  <div class="icon">🔍</div>
+  <p>No leads{% if current_status %} with status "{{ current_status }}"{% endif %}.</p>
+</div>
+{% endif %}
+
+{% endblock %}

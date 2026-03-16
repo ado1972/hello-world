@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div style="display:flex; align-items:center; gap:16px; margin-bottom:24px;">
+  <h1 style="font-size:20px; font-weight:700;">Scraping Session</h1>
+  <span id="statusBadge" class="badge {{ 'badge-new' if job.status == 'running' else ('badge-qualified' if job.status == 'done' else 'badge-rejected') }}">
+    {{ job.status }}
+  </span>
+</div>
+
+<div class="scrape-box">
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+    <span style="font-size:13px; color:var(--muted);">
+      Leads saved so far: <strong id="savedCount" style="color:var(--accent2);">{{ job.saved }}</strong>
+    </span>
+    <span id="spinner" style="color:var(--muted); font-size:12px; {{ 'display:none' if job.status != 'running' else '' }}">
+      ⟳ running…
+    </span>
+  </div>
+
+  <div id="log" class="active">{% for line in job.log %}<div class="{{ 'log-ok' if '✔' in line else ('log-done' if '✅' in line else ('log-info' if '❌' not in line else '')) }}">{{ line }}</div>{% endfor %}</div>
+</div>
+
+<div id="doneActions" style="{{ '' if job.status != 'running' else 'display:none' }}; display:flex; gap:12px; margin-top:20px;">
+  <a href="/leads" class="btn">View All Leads</a>
+  <a href="/scrape" class="btn secondary">New Scrape</a>
+</div>
+
+<script>
+  const jobId = "{{ job_id }}";
+  let done = {{ 'true' if job.status != 'running' else 'false' }};
+  const logEl = document.getElementById('log');
+  const savedEl = document.getElementById('savedCount');
+  const badgeEl = document.getElementById('statusBadge');
+  const spinnerEl = document.getElementById('spinner');
+  const doneEl = document.getElementById('doneActions');
+  let linesShown = {{ job.log | length }};
+
+  function statusClass(s) {
+    return s === 'done' ? 'badge-qualified' : s === 'error' ? 'badge-rejected' : 'badge-new';
+  }
+
+  async function poll() {
+    if (done) return;
+    try {
+      const r = await fetch(`/api/job/${jobId}`);
+      const data = await r.json();
+
+      // Append new log lines
+      const newLines = data.log.slice(linesShown);
+      for (const line of newLines) {
+        const div = document.createElement('div');
+        div.textContent = line;
+        div.className = line.includes('✔') ? 'log-ok' : line.includes('✅') ? 'log-done' : line.includes('❌') ? '' : 'log-info';
+        logEl.appendChild(div);
+      }
+      linesShown = data.log.length;
+      logEl.scrollTop = logEl.scrollHeight;
+
+      savedEl.textContent = data.saved;
+
+      if (data.status !== 'running') {
+        done = true;
+        badgeEl.textContent = data.status;
+        badgeEl.className = 'badge ' + statusClass(data.status);
+        spinnerEl.style.display = 'none';
+        doneEl.style.display = 'flex';
+      }
+    } catch(e) { /* network blip, try again */ }
+  }
+
+  if (!done) setInterval(poll, 2000);
+  logEl.scrollTop = logEl.scrollHeight;
+</script>
+
+{% endblock %}

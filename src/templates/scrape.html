@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1 style="font-size:20px; font-weight:700; margin-bottom:24px;">🔍 New Scraping Session</h1>
+
+<div class="scrape-box">
+  <form method="post" action="/scrape/run" id="scrapeForm">
+    <div style="margin-bottom:16px;">
+      <label style="display:block; font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:6px;">Search Query *</label>
+      <input name="query" style="width:100%; background:var(--bg); border:1px solid var(--border); border-radius:6px; color:var(--text); padding:10px 14px; font-size:14px;"
+             placeholder='e.g. "logistics companies in Ohio needing dispatch software"' required />
+    </div>
+
+    <div style="margin-bottom:16px;">
+      <label style="display:block; font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:6px;">Target Lead Count</label>
+      <input name="max_leads" type="number" value="15" min="1" max="100"
+             style="width:120px; background:var(--bg); border:1px solid var(--border); border-radius:6px; color:var(--text); padding:10px 14px; font-size:14px;" />
+    </div>
+
+    <div style="margin-bottom:20px;">
+      <label style="display:block; font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:6px;">
+        SFG Description <span style="color:var(--muted); font-style:italic">(optional override)</span>
+      </label>
+      <textarea name="sfg_description" rows="3"
+        style="width:100%; background:var(--bg); border:1px solid var(--border); border-radius:6px; color:var(--text); padding:10px 14px; font-size:13px; resize:vertical;"
+        placeholder="Leave blank to use the SFG_DESCRIPTION from your .env file"></textarea>
+    </div>
+
+    <button class="btn" type="submit">▶ Start Scraping</button>
+  </form>
+</div>
+
+<div style="margin-top:12px; color:var(--muted); font-size:13px; line-height:1.7;">
+  <p><strong style="color:var(--text);">Tips for great queries:</strong></p>
+  <ul style="margin-left:20px; margin-top:8px;">
+    <li>Be specific about industry, size, and geography</li>
+    <li>Mention a pain point SFG solves</li>
+    <li>Try signals like "recently hired", "Series A", "expanding"</li>
+  </ul>
+  <p style="margin-top:10px;"><em>Examples:</em><br>
+    "fintech startups in NYC that recently raised Series A"<br>
+    "mid-size trucking companies in the Southeast using legacy dispatch"<br>
+    "construction firms in Texas hiring operations managers 2024"
+  </p>
+</div>
+
+{% endblock %}

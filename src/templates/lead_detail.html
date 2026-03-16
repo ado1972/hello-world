@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div style="margin-bottom:20px;">
+  <a href="/leads" style="color:var(--muted); text-decoration:none; font-size:13px;">← All leads</a>
+</div>
+
+<div style="display:flex; align-items:flex-start; justify-content:space-between; gap:24px; flex-wrap:wrap; margin-bottom:32px;">
+  <div>
+    <h1 style="font-size:24px; font-weight:700; margin-bottom:4px;">{{ lead.company or 'Unknown Company' }}</h1>
+    {% if lead.name %}<p style="color:var(--muted);">{{ lead.name }}</p>{% endif %}
+  </div>
+  <span class="badge badge-{{ lead.status }}">{{ lead.status }}</span>
+</div>
+
+<div class="detail-grid" style="margin-bottom:32px;">
+  {% if lead.email %}
+  <div class="detail-field">
+    <label>Email</label>
+    <p><a href="mailto:{{ lead.email }}">{{ lead.email }}</a></p>
+  </div>
+  {% endif %}
+  {% if lead.phone %}
+  <div class="detail-field">
+    <label>Phone</label>
+    <p>{{ lead.phone }}</p>
+  </div>
+  {% endif %}
+  {% if lead.website %}
+  <div class="detail-field">
+    <label>Website</label>
+    <p><a href="{{ lead.website }}" target="_blank">{{ lead.website }}</a></p>
+  </div>
+  {% endif %}
+  {% if lead.location %}
+  <div class="detail-field">
+    <label>Location</label>
+    <p>{{ lead.location }}</p>
+  </div>
+  {% endif %}
+  {% if lead.industry %}
+  <div class="detail-field">
+    <label>Industry</label>
+    <p>{{ lead.industry }}</p>
+  </div>
+  {% endif %}
+  {% if lead.source_url %}
+  <div class="detail-field">
+    <label>Source</label>
+    <p><a href="{{ lead.source_url }}" target="_blank">{{ lead.source_url | truncate(60) }}</a></p>
+  </div>
+  {% endif %}
+</div>
+
+{% if lead.description %}
+<div style="margin-bottom:32px;">
+  <p style="font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:8px;">Why SFG?</p>
+  <p style="line-height:1.7; color:var(--text);">{{ lead.description }}</p>
+</div>
+{% endif %}
+
+{% if lead.tags %}
+<div style="margin-bottom:32px;">
+  <p style="font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:8px;">Tags</p>
+  <div class="tags">
+    {% for tag in lead.tags %}
+    <span class="tag">{{ tag }}</span>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<!-- Update form -->
+<div class="scrape-box">
+  <h2 style="margin-bottom:16px; font-size:14px; font-weight:600;">Update Lead</h2>
+  <form method="post" action="/leads/{{ lead.id }}/update">
+    <div class="row" style="margin-bottom:12px;">
+      <select name="status" style="max-width:200px; background:var(--bg); border:1px solid var(--border); border-radius:6px; color:var(--text); padding:9px 12px; font-size:13px;">
+        {% for s in ['new','contacted','qualified','closed','rejected'] %}
+        <option value="{{ s }}" {{ 'selected' if lead.status == s else '' }}>{{ s | capitalize }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="row" style="margin-bottom:12px;">
+      <textarea name="notes" rows="3" placeholder="Add notes…">{{ lead.notes or '' }}</textarea>
+    </div>
+    <div class="row">
+      <button class="btn" type="submit">Save</button>
+    </div>
+  </form>
+</div>
+
+{% if lead.notes %}
+<div style="margin-top:24px;">
+  <p style="font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:8px;">Notes</p>
+  <p style="line-height:1.7; white-space:pre-wrap; color:var(--text);">{{ lead.notes }}</p>
+</div>
+{% endif %}
+
+<p style="margin-top:32px; color:var(--muted); font-size:12px;">
+  Created {{ lead.created_at[:16] }} · Updated {{ lead.updated_at[:16] }}
+</p>
+
+{% endblock %}
